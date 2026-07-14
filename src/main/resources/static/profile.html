@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Profile - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li class="active"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>👤 My Profile</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:280px 1fr; gap:25px;">
+            <!-- Profile Card -->
+            <div class="card" style="text-align:center;">
+                <div style="width:120px; height:120px; background:linear-gradient(135deg,#00d2ff,#3a7bd5); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; font-size:48px; color:white; font-weight:700;" id="profileAvatar">S</div>
+                <h2 id="profileName">Student</h2>
+                <p style="color:#b2bec3;" id="profileEmail">student@email.com</p>
+                <hr style="margin:15px 0;">
+                <p style="font-size:13px; color:#636e72;">🎓 <span id="profileCollege">-</span></p>
+                <p style="font-size:13px; color:#636e72;">📚 <span id="profileBranch">-</span></p>
+                <p style="font-size:13px; color:#636e72;">📅 Year <span id="profileYear">-</span></p>
+            </div>
+
+            <!-- Details -->
+            <div class="card">
+                <h2>📋 Student Details</h2>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div><label>Full Name</label><div style="font-weight:600;" id="displayName">-</div></div>
+                    <div><label>Email</label><div style="font-weight:600;" id="displayEmail">-</div></div>
+                    <div><label>College</label><div style="font-weight:600;" id="displayCollege">-</div></div>
+                    <div><label>Branch</label><div style="font-weight:600;" id="displayBranch">-</div></div>
+                    <div><label>Year</label><div style="font-weight:600;" id="displayYear">-</div></div>
+                    <div><label>User ID</label><div style="font-weight:600;" id="displayId">-</div></div>
+                </div>
+                <button onclick="refreshProfile()" style="margin-top:15px;">🔄 Refresh Profile</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card" style="margin-top:20px;">
+            <h2>📊 Skill Statistics</h2>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px;">
+                <div style="background:#f8f9fa; padding:15px; border-radius:8px; text-align:center;">
+                    <div style="font-size:24px; font-weight:700; color:#00d2ff;" id="totalSkills">0</div>
+                    <div style="color:#b2bec3;">Total Skills</div>
+                </div>
+                <div style="background:#f8f9fa; padding:15px; border-radius:8px; text-align:center;">
+                    <div style="font-size:24px; font-weight:700; color:#00b894;" id="matchedSkills">0</div>
+                    <div style="color:#b2bec3;">Matched Skills</div>
+                </div>
+                <div style="background:#f8f9fa; padding:15px; border-radius:8px; text-align:center;">
+                    <div style="font-size:24px; font-weight:700; color:#e17055;" id="missingSkills">0</div>
+                    <div style="color:#b2bec3;">Missing Skills</div>
+                </div>
+                <div style="background:#f8f9fa; padding:15px; border-radius:8px; text-align:center;">
+                    <div style="font-size:24px; font-weight:700; color:#6c5ce7;" id="readinessScore">0%</div>
+                    <div style="color:#b2bec3;">Readiness Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get current user ID from localStorage (set during login)
+        const userId = localStorage.getItem("userId") || 1;
+        const storedName = localStorage.getItem("userName") || "Student";
+        const storedEmail = localStorage.getItem("userEmail") || "student@email.com";
+
+        // Set header temporarily
+        document.getElementById("userName").textContent = storedName;
+        document.getElementById("avatar").textContent = storedName.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        function refreshProfile() {
+            // FETCH USER DATA FROM BACKEND - THIS IS THE FIX!
+            fetch(`/users/${userId}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('User not found');
+                    }
+                    return res.json();
+                })
+                .then(user => {
+                    // Update all profile fields with backend data
+                    const name = user.name || storedName;
+                    const email = user.email || storedEmail;
+
+                    // Update profile card
+                    document.getElementById("profileName").textContent = name;
+                    document.getElementById("profileEmail").textContent = email;
+                    document.getElementById("profileAvatar").textContent = name.charAt(0).toUpperCase();
+                    document.getElementById("profileCollege").textContent = user.college || "-";
+                    document.getElementById("profileBranch").textContent = user.branch || "-";
+                    document.getElementById("profileYear").textContent = user.year || "-";
+
+                    // Update details section
+                    document.getElementById("displayName").textContent = name;
+                    document.getElementById("displayEmail").textContent = email;
+                    document.getElementById("displayCollege").textContent = user.college || "-";
+                    document.getElementById("displayBranch").textContent = user.branch || "-";
+                    document.getElementById("displayYear").textContent = user.year || "-";
+                    document.getElementById("displayId").textContent = user.id || userId;
+
+                    // Update header
+                    document.getElementById("userName").textContent = name;
+                    document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+                    // Update localStorage with correct data
+                    localStorage.setItem("userName", name);
+                    localStorage.setItem("userEmail", email);
+                })
+                .catch(() => {
+                    // Fallback: show localStorage data if backend fails
+                    document.getElementById("profileName").textContent = storedName;
+                    document.getElementById("profileEmail").textContent = storedEmail;
+                    document.getElementById("profileAvatar").textContent = storedName.charAt(0).toUpperCase();
+                    document.getElementById("displayName").textContent = storedName;
+                    document.getElementById("displayEmail").textContent = storedEmail;
+                    document.getElementById("displayId").textContent = userId;
+                    
+                    // Show error message
+                    document.getElementById("displayCollege").textContent = "❌ Could not load";
+                    document.getElementById("displayBranch").textContent = "❌ Could not load";
+                });
+
+            // Load skills stats
+            fetch(`/skills/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("totalSkills").textContent = data.length || 0;
+                })
+                .catch(() => {
+                    document.getElementById("totalSkills").textContent = "0";
+                });
+
+            // Load analyzer stats
+           fetch(`/users/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("matchedSkills").textContent = data.matchedSkills ? data.matchedSkills.length : 0;
+                    document.getElementById("missingSkills").textContent = data.missingSkills ? data.missingSkills.length : 0;
+                    document.getElementById("readinessScore").textContent = data.readinessScore + "%";
+                })
+                .catch(() => {
+                    document.getElementById("matchedSkills").textContent = "0";
+                    document.getElementById("missingSkills").textContent = "0";
+                    document.getElementById("readinessScore").textContent = "0%";
+                });
+        }
+
+        // Load profile on page load
+        refreshProfile();
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>📊 Dashboard</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <div class="label">Readiness Score</div>
+                <div class="value" id="score">0%</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="label">Total Skills</div>
+                <div class="value" id="skillsCount">0</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="label">Matched Skills</div>
+                <div class="value" id="matchedCount">0</div>
+            </div>
+            <div class="stat-card red">
+                <div class="label">Missing Skills</div>
+                <div class="value" id="missingCount">0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Quick Actions</h2>
+            <div class="flex">
+                <button onclick="window.location='skills.html'">➕ Add Skills</button>
+                <button onclick="window.location='companyskills.html'">⚡ Add Company Skills</button>
+                <button onclick="window.location='analyzer.html'">🔍 Check Readiness</button>
+                <button onclick="window.location='roadmap.html'">🗺️ View Roadmap</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        // Load dashboard data
+        fetch(`/analyzer?userId=${userId}&companyId=1`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("score").textContent = data.readinessScore + "%";
+                document.getElementById("matchedCount").textContent = data.matchedSkills.length;
+                document.getElementById("missingCount").textContent = data.missingSkills.length;
+            })
+            .catch(() => {
+                document.getElementById("score").textContent = "—";
+            });
+
+        fetch(`/skills/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("skillsCount").textContent = data.length;
+            })
+            .catch(() => {
+                document.getElementById("skillsCount").textContent = "—";
+            });
+    </script>
+</body>
+</html>

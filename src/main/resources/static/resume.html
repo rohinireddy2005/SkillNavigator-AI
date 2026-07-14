@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Resume - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li class="active"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>📄 Resume Upload</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <div class="card" style="text-align:center;">
+            <h2>Upload Your Resume</h2>
+            <p style="color:#636e72; margin-bottom:20px;">Upload your resume to help companies evaluate your profile</p>
+
+            <!-- Hidden file input -->
+            <input type="file" id="fileInput" style="display:none;" accept=".pdf,.doc,.docx">
+
+            <!-- Upload Zone -->
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <div class="icon">📄</div>
+                <p>Click here or drag and drop</p>
+                <p style="font-size:13px; color:#b2bec3;">Supports PDF, DOC, DOCX</p>
+                <div id="fileName" style="margin-top:10px;"></div>
+            </div>
+
+            <button onclick="uploadResume()" style="margin-top:20px;">📤 Upload Resume</button>
+
+            <div id="uploadStatus" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Previous Uploads</h2>
+            <div id="resumeHistory">
+                <p style="color:#b2bec3;">No resume uploaded yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        let selectedFile = null;
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        // File selection
+        document.getElementById("fileInput").addEventListener("change", function(e) {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                document.getElementById("fileName").innerHTML = `✅ Selected: <span class="file-name">${selectedFile.name}</span> (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+                document.getElementById("uploadStatus").innerHTML = "";
+            }
+        });
+
+        // NEW: Upload resume to S3 (using FormData)
+        function uploadResume() {
+            if (!selectedFile) {
+                document.getElementById("uploadStatus").innerHTML = "<div class='alert-danger'>⚠️ Please select a file first!</div>";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+            formData.append("userId", userId);
+
+            fetch("/resume/upload", {
+                method: "POST",
+                body: formData
+                // Do NOT set Content-Type header – browser sets it with boundary
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("uploadStatus").innerHTML = `<div class='alert-success'>✅ Resume uploaded to S3!<br>📍 ${data.resumeUrl}</div>`;
+                loadResumeHistory();
+                selectedFile = null;
+                document.getElementById("fileName").innerHTML = "";
+                document.getElementById("fileInput").value = "";
+            })
+            .catch(err => {
+                document.getElementById("uploadStatus").innerHTML = `<div class='alert-danger'>❌ Upload failed: ${err}</div>`;
+            });
+        }
+
+        // Load resume history
+        function loadResumeHistory() {
+            fetch(`/resume/user/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let html = "";
+                    if (data.length === 0) {
+                        html = "<p style='color:#b2bec3;'>No resume uploaded yet.</p>";
+                    } else {
+                        data.forEach(resume => {
+                            html += `
+                                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f2f5;">
+                                    <span>📄 ${resume.resumeUrl}</span>
+                                    <span style="font-size:13px; color:#b2bec3;">ID: ${resume.id}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById("resumeHistory").innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById("resumeHistory").innerHTML = "<p style='color:#b2bec3;'>No resume history found</p>";
+                });
+        }
+
+        loadResumeHistory();
+    </script>
+</body>
+</html>

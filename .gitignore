@@ -1,0 +1,6 @@
+*.class 
+*.jar 
+target/ 
+*.log 
+*.pem 
+.DS_Store 

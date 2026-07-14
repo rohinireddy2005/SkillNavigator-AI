@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Company Skills - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li class="active"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>⚡ Company Skills</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <!-- JD Parser Section -->
+        <div class="card" style="border-left:5px solid #6c5ce7;">
+            <h2>📄 Auto-Extract Skills from Job Description</h2>
+            <p style="color:#636e72; margin-bottom:15px;">Paste a job description below and click "Extract Skills"</p>
+            <textarea id="jdInput" placeholder="Paste job description here..."></textarea>
+            <button onclick="extractSkillsFromJD()">🔍 Extract Skills</button>
+            <div id="extractedSkills" style="margin-top:15px;"></div>
+        </div>
+
+        <!-- Manual Add Section -->
+        <div class="card">
+            <h2>⚡ Add Skill to Company</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <div>
+                    <label>Company ID</label>
+                    <input type="number" id="companyId" placeholder="e.g., 1" value="1">
+                </div>
+                <div>
+                    <label>Skill Name</label>
+                    <input type="text" id="skillName" placeholder="Enter skill name">
+                </div>
+            </div>
+            <button onclick="addCompanySkill()" style="width:100%;">Add Skill to Company</button>
+        </div>
+
+        <!-- List Section -->
+        <div class="card">
+            <h2>📋 Skills for Company</h2>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="number" id="viewCompanyId" placeholder="Company ID" value="1" style="flex:1;">
+                <button onclick="loadCompanySkills()">View Skills</button>
+            </div>
+            <div id="companySkillList">
+                <p style="color:#b2bec3;">Select a company to view skills</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        // Auto-extract skills from JD
+        function extractSkillsFromJD() {
+            const text = document.getElementById("jdInput").value;
+            if (!text.trim()) {
+                alert("Please paste a job description first!");
+                return;
+            }
+
+            const skillKeywords = [
+                "java", "python", "javascript", "react", "angular", "vue", "node", "spring", 
+                "docker", "kubernetes", "aws", "azure", "gcp", "sql", "mongodb", "postgres",
+                "html", "css", "typescript", "git", "jenkins", "linux", "ci/cd", "agile", "scrum",
+                "machine learning", "ai", "deep learning", "nlp", "data science", "analytics",
+                "c++", "c#", "ruby", "php", "swift", "kotlin", "go", "rust", "scala",
+                "rest", "graphql", "microservices", "kafka", "redis", "elasticsearch"
+            ];
+
+            const foundSkills = [];
+            const lowerText = text.toLowerCase();
+
+            skillKeywords.forEach(skill => {
+                if (lowerText.includes(skill)) {
+                    foundSkills.push(skill);
+                }
+            });
+
+            const uniqueSkills = [...new Set(foundSkills)];
+
+            if (uniqueSkills.length === 0) {
+                document.getElementById("extractedSkills").innerHTML = 
+                    `<div class="alert-danger">❌ No matching skills found. Try adding skills manually below.</div>`;
+                return;
+            }
+
+            let html = `<div class="alert-success">✅ Found ${uniqueSkills.length} skills in this job description:</div><div style="margin-top:10px;">`;
+            uniqueSkills.forEach(skill => {
+                html += `<span class="skill-tag" onclick="addExtractedSkill('${skill}')" style="cursor:pointer;">${skill} ➕</span>`;
+            });
+            html += `</div><p style="font-size:13px; color:#b2bec3; margin-top:10px;">Click any skill to add it to the company above.</p>`;
+            document.getElementById("extractedSkills").innerHTML = html;
+        }
+
+        function addExtractedSkill(skillName) {
+            document.getElementById("skillName").value = skillName;
+            const input = document.getElementById("skillName");
+            input.style.borderColor = "#00b894";
+            setTimeout(() => input.style.borderColor = "", 2000);
+        }
+
+        // Add company skill
+        function addCompanySkill() {
+            const companyId = parseInt(document.getElementById("companyId").value);
+            const skillName = document.getElementById("skillName").value.trim();
+
+            if (!skillName) {
+                alert("Please enter a skill name!");
+                return;
+            }
+
+            fetch("/companyskills/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ companyId: companyId, skillName: skillName })
+            })
+            .then(res => res.json())
+            .then(() => {
+                document.getElementById("skillName").value = "";
+                alert("✅ Skill added to company!");
+                loadCompanySkills();
+            })
+            .catch(err => alert("❌ Error: " + err));
+        }
+
+        // Load company skills
+        function loadCompanySkills() {
+            const companyId = document.getElementById("viewCompanyId").value;
+            fetch(`/companyskills/${companyId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let html = `<p style="font-weight:600;">Skills for Company ID ${companyId}:</p><div style="margin-top:10px;">`;
+                    if (data.length === 0) {
+                        html += "<p style='color:#b2bec3;'>No skills added for this company yet.</p>";
+                    } else {
+                        data.forEach(skill => {
+                            html += `<span class="skill-tag">${skill.skillName}</span>`;
+                        });
+                    }
+                    html += "</div>";
+                    document.getElementById("companySkillList").innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById("companySkillList").innerHTML = "<p style='color:#e17055;'>❌ Error loading company skills</p>";
+                });
+        }
+
+        // Load skills on page load
+        window.onload = function() {
+            loadCompanySkills();
+        };
+    </script>
+</body>
+</html>

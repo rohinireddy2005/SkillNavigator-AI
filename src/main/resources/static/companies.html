@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Companies - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li class="active"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>🏢 Companies</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>➕ Add Company</h2>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="companyInput" placeholder="Enter company name..." style="flex:1;">
+                <button onclick="addCompany()" style="white-space:nowrap;">Add Company</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Available Companies</h2>
+            <div id="companyList">
+                <p style="color:#b2bec3;">Loading companies...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        function loadCompanies() {
+            fetch("/companies")
+                .then(res => res.json())
+                .then(data => {
+                    let html = "";
+                    if (data.length === 0) {
+                        html = "<p style='color:#b2bec3;'>No companies added yet.</p>";
+                    } else {
+                        data.forEach(company => {
+                            html += `
+                                <div style="display:flex; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #f0f2f5; align-items:center;">
+                                    <span style="font-weight:600;">🏢 ${company.companyName}</span>
+                                    <span style="color:#b2bec3; font-size:13px;">ID: ${company.id}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById("companyList").innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById("companyList").innerHTML = "<p style='color:#e17055;'>❌ Error loading companies</p>";
+                });
+        }
+
+        function addCompany() {
+            const input = document.getElementById("companyInput");
+            const companyName = input.value.trim();
+
+            if (!companyName) {
+                alert("Please enter a company name!");
+                return;
+            }
+
+            fetch("/companies/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ companyName: companyName })
+            })
+            .then(res => res.json())
+            .then(() => {
+                input.value = "";
+                loadCompanies();
+                alert("✅ Company added successfully!");
+            })
+            .catch(err => alert("❌ Error adding company: " + err));
+        }
+
+        loadCompanies();
+    </script>
+</body>
+</html>

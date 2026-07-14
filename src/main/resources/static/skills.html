@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>My Skills - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li class="active"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>📚 My Skills</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>➕ Add New Skill</h2>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="skillInput" placeholder="Enter skill name..." style="flex:1;">
+                <button onclick="addSkill()" style="white-space:nowrap;">Add Skill</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Your Skills</h2>
+            <div id="skillList">
+                <p style="color:#b2bec3;">Loading skills...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        function loadSkills() {
+            fetch(`/skills/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let html = "";
+                    if (data.length === 0) {
+                        html = "<p style='color:#b2bec3;'>No skills added yet. Start by adding one above!</p>";
+                    } else {
+                        data.forEach(skill => {
+                            html += `<span class="skill-tag">${skill.skillName}</span>`;
+                        });
+                    }
+                    document.getElementById("skillList").innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById("skillList").innerHTML = "<p style='color:#e17055;'>❌ Error loading skills</p>";
+                });
+        }
+
+        function addSkill() {
+            const input = document.getElementById("skillInput");
+            const skillName = input.value.trim();
+
+            if (!skillName) {
+                alert("Please enter a skill name!");
+                return;
+            }
+
+            fetch("/skills/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: parseInt(userId), skillName: skillName })
+            })
+            .then(res => res.json())
+            .then(() => {
+                input.value = "";
+                loadSkills();
+            })
+            .catch(err => alert("❌ Error adding skill: " + err));
+        }
+
+        loadSkills();
+    </script>
+</body>
+</html>

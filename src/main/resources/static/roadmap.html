@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Roadmap - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li onclick="window.location='analyzer.html'"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li class="active"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>🗺️ Learning Roadmap</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <!-- Progress Overview -->
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <div class="label">Progress</div>
+                <div class="value" id="progressPercent">0%</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="label">Completed</div>
+                <div class="value" id="completedCount">0</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="label">Remaining</div>
+                <div class="value" id="remainingCount">0</div>
+            </div>
+        </div>
+
+        <!-- Roadmap List -->
+        <div class="card">
+            <h2>📅 Personalized Learning Plan</h2>
+            <p style="color:#636e72; margin-bottom:15px;">Click on checkboxes to track your progress</p>
+            <div id="roadmapList"></div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="card" style="border-left:5px solid #6c5ce7;">
+            <h2>💡 Next Steps</h2>
+            <div id="nextSteps"></div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        // Roadmap data with tracking
+        const roadmapData = [
+            "Week 1: Core DSA Fundamentals (Arrays, Strings, Linked Lists)",
+            "Week 2: Advanced DSA (Trees, Graphs, DP)",
+            "Week 3: Backend Development (Spring Boot, REST APIs)",
+            "Week 4: Frontend Development (React, HTML, CSS)",
+            "Week 5: DevOps & Cloud (Docker, AWS, CI/CD)",
+            "Week 6: Mock Interviews & Soft Skills"
+        ];
+
+        // Load saved progress from localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem(`roadmap_${userId}`);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return new Array(roadmapData.length).fill(false);
+        }
+
+        // Save progress
+        function saveProgress(progress) {
+            localStorage.setItem(`roadmap_${userId}`, JSON.stringify(progress));
+        }
+
+        // Render roadmap
+        function renderRoadmap() {
+            const progress = loadProgress();
+            let html = "";
+            let completed = 0;
+
+            roadmapData.forEach((item, index) => {
+                const checked = progress[index] ? "checked" : "";
+                const style = progress[index] ? "color:#00b894;" : "color:#636e72;";
+                if (progress[index]) completed++;
+
+                html += `
+                    <div style="display:flex; align-items:center; gap:15px; padding:12px 16px; border-bottom:1px solid #f0f2f5;">
+                        <input type="checkbox" ${checked} onchange="toggleTask(${index})" style="width:20px; height:20px; cursor:pointer;">
+                        <span style="${style}">${item}</span>
+                        ${progress[index] ? '<span style="color:#00b894; font-size:12px; margin-left:auto;">✅ Complete</span>' : '<span style="color:#b2bec3; font-size:12px; margin-left:auto;">⏳ Pending</span>'}
+                    </div>
+                `;
+            });
+
+            document.getElementById("roadmapList").innerHTML = html;
+
+            // Update stats
+            const total = roadmapData.length;
+            const remaining = total - completed;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById("progressPercent").textContent = percent + "%";
+            document.getElementById("completedCount").textContent = completed;
+            document.getElementById("remainingCount").textContent = remaining;
+
+            // Next steps
+            if (completed === total) {
+                document.getElementById("nextSteps").innerHTML = `
+                    <div class="alert-success">🎉 Congratulations! You've completed all roadmap tasks! You're ready for placements!</div>
+                    <div style="margin-top:10px;">
+                        <button onclick="window.location='analyzer.html'">🔍 Check Your Readiness</button>
+                        <button onclick="window.location='resume.html'" style="margin-left:10px;">📄 Upload Resume</button>
+                    </div>
+                `;
+            } else {
+                let nextHtml = "<div class='alert-danger'>🔴 Focus on completing these remaining weeks:</div><ul style='margin:10px 0;'>";
+                const nextTasks = [];
+                for (let i = 0; i < roadmapData.length; i++) {
+                    if (!progress[i]) {
+                        nextTasks.push(roadmapData[i]);
+                    }
+                }
+                nextTasks.slice(0, 3).forEach(task => {
+                    nextHtml += `<li>${task}</li>`;
+                });
+                if (nextTasks.length > 3) {
+                    nextHtml += `<li style="color:#b2bec3;">...and ${nextTasks.length - 3} more</li>`;
+                }
+                nextHtml += "</ul>";
+                document.getElementById("nextSteps").innerHTML = nextHtml;
+            }
+        }
+
+        // Toggle task
+        function toggleTask(index) {
+            const progress = loadProgress();
+            progress[index] = !progress[index];
+            saveProgress(progress);
+            renderRoadmap();
+        }
+
+        // Initial render
+        renderRoadmap();
+    </script>
+</body>
+</html>

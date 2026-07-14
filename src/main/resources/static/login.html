@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='index.html'"><span class="icon">🏠</span><span>Home</span></li>
+            <li onclick="window.location='register.html'"><span class="icon">👤</span><span>Register</span></li>
+            <li class="active"><span class="icon">🔑</span><span>Login</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>Welcome Back</h1>
+            <div class="user-info">
+                <span>Guest</span>
+                <div class="avatar">👤</div>
+            </div>
+        </div>
+
+        <div class="card" style="max-width:450px; margin:0 auto;">
+            <h2>🔐 Login to Your Account</h2>
+            <form onsubmit="login(); return false;">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="your@email.com" required>
+
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+
+                <button type="submit" style="width:100%; margin-top:10px;">Login →</button>
+            </form>
+            <p style="text-align:center; margin-top:15px;">
+                Don't have an account? <a href="register.html" style="color:#00d2ff;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            fetch(`/users/login?email=${email}&password=${password}`, {
+                method: "POST"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.id) {
+                    localStorage.setItem("userId", data.id);
+                    localStorage.setItem("userName", data.name);
+                    localStorage.setItem("userEmail", data.email);
+                    window.location = "dashboard.html";
+                } else {
+                    alert("❌ Invalid credentials! Please try again.");
+                }
+            })
+            .catch(err => alert("❌ Login failed: " + err));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Admin Panel</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<nav>
+
+<h2>SkillNavigator Admin</h2>
+
+</nav>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Total Students</h2>
+
+<h1 id="students">0</h1>
+
+</div>
+
+<div class="card">
+
+<h2>Total Companies</h2>
+
+<h1 id="companies">0</h1>
+
+</div>
+
+<div class="card">
+
+<h2>Total Skills</h2>
+
+<h1 id="skills">0</h1>
+
+</div>
+
+</div>
+
+<script>
+
+fetch("/users")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("students").innerHTML=data.length;
+});
+
+fetch("/companies")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("companies").innerHTML=data.length;
+});
+
+fetch("/skills/1")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("skills").innerHTML=data.length;
+});
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Analyzer - SkillNavigator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Skill<span>Navigator</span></h2>
+            <p>Placement Readiness</p>
+        </div>
+        <ul class="sidebar-menu">
+            <li onclick="window.location='dashboard.html'"><span class="icon">📊</span><span>Dashboard</span></li>
+            <li onclick="window.location='skills.html'"><span class="icon">📚</span><span>My Skills</span></li>
+            <li onclick="window.location='companies.html'"><span class="icon">🏢</span><span>Companies</span></li>
+            <li onclick="window.location='companyskills.html'"><span class="icon">⚡</span><span>Company Skills</span></li>
+            <li class="active"><span class="icon">🔍</span><span>Analyzer</span></li>
+            <li onclick="window.location='roadmap.html'"><span class="icon">🗺️</span><span>Roadmap</span></li>
+            <li onclick="window.location='resume.html'"><span class="icon">📄</span><span>Resume</span></li>
+            <li onclick="window.location='profile.html'"><span class="icon">👤</span><span>Profile</span></li>
+            <li onclick="logout()" style="color:#e17055;"><span class="icon">🚪</span><span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h1>🔍 Skill Gap Analyzer</h1>
+            <div class="user-info">
+                <span id="userName">Student</span>
+                <div class="avatar" id="avatar">S</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Your Readiness Score</h2>
+            <div style="text-align:center;">
+                <div style="font-size:72px; font-weight:700; color:#00d2ff;" id="score">0%</div>
+                <div style="width:100%; height:12px; background:#f0f2f5; border-radius:6px; margin:15px 0;">
+                    <div id="scoreBar" style="height:100%; background:linear-gradient(90deg,#00d2ff,#3a7bd5); border-radius:6px; width:0%; transition:width 1s;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="card">
+                <h2>✅ Matched Skills</h2>
+                <div id="matched"></div>
+            </div>
+            <div class="card" style="border-left:5px solid #e17055;">
+                <h2>❌ Missing Skills</h2>
+                <div id="missing"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💡 Recommendations</h2>
+            <div id="recommendations">
+                <p style="color:#b2bec3;">Analyze your skills to get recommendations</p>
+            </div>
+        </div>
+
+        <div class="card" style="border-left:5px solid #fdcb6e; margin-top:20px;">
+            <h2>📚 Recommended Resources</h2>
+            <div id="resources">
+                <p style="color:#b2bec3;">Based on your missing skills, here are some resources:</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem("userId") || 1;
+        const name = localStorage.getItem("userName") || "Student";
+
+        document.getElementById("userName").textContent = name;
+        document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+
+        function logout() {
+            localStorage.clear();
+            window.location = "index.html";
+        }
+
+        function analyze() {
+            const companyId = 1;
+
+            fetch(`/analyzer?userId=${userId}&companyId=${companyId}`)
+                .then(res => res.json())
+                .then(data => {
+                    // Score
+                    document.getElementById("score").textContent = data.readinessScore + "%";
+                    document.getElementById("scoreBar").style.width = data.readinessScore + "%";
+
+                    // Matched skills
+                    let matchedHtml = "";
+                    if (data.matchedSkills.length === 0) {
+                        matchedHtml = "<p style='color:#b2bec3;'>No matched skills</p>";
+                    } else {
+                        data.matchedSkills.forEach(skill => {
+                            matchedHtml += `<span class="skill-tag matched">✅ ${skill}</span>`;
+                        });
+                    }
+                    document.getElementById("matched").innerHTML = matchedHtml;
+
+                    // Missing skills
+                    let missingHtml = "";
+                    if (data.missingSkills.length === 0) {
+                        missingHtml = "<p style='color:#b2bec3;'>No missing skills - You're ready!</p>";
+                    } else {
+                        data.missingSkills.forEach(skill => {
+                            missingHtml += `<span class="skill-tag missing">❌ ${skill}</span>`;
+                        });
+                    }
+                    document.getElementById("missing").innerHTML = missingHtml;
+
+                    // Recommendations
+                    let recHtml = "";
+                    if (data.missingSkills.length > 0) {
+                        recHtml = `<div class="alert-danger">🔴 Focus on learning: ${data.missingSkills.join(", ")}</div>`;
+                        recHtml += `<div style="margin-top:10px;"><button onclick="window.location='roadmap.html'">🗺️ View Learning Roadmap</button></div>`;
+                    } else {
+                        recHtml = `<div class="alert-success">🎉 You match all required skills! You're ready for placement!</div>`;
+                    }
+                    document.getElementById("recommendations").innerHTML = recHtml;
+
+                    // Recommended Resources (moved INSIDE the fetch block)
+                    let resourceHtml = "";
+                    if (data.missingSkills.length > 0) {
+                        resourceHtml = "<ul>";
+                        data.missingSkills.forEach(skill => {
+                            resourceHtml += `<li><b>${skill}</b> - Check YouTube, Coursera, or Udemy for courses on ${skill}</li>`;
+                        });
+                        resourceHtml += "</ul>";
+                    } else {
+                        resourceHtml = "<p style='color:#00b894;'>🎉 You have all required skills! Keep practicing!</p>";
+                    }
+                    document.getElementById("resources").innerHTML = resourceHtml;
+                })
+                .catch(() => {
+                    document.getElementById("score").textContent = "Error";
+                    document.getElementById("matched").innerHTML = "<p style='color:#e17055;'>Error loading data</p>";
+                    document.getElementById("missing").innerHTML = "<p style='color:#e17055;'>Error loading data</p>";
+                    document.getElementById("resources").innerHTML = "<p style='color:#e17055;'>Error loading recommendations</p>";
+                });
+        }
+
+        analyze();
+    </script>
+</body>
+</html>
