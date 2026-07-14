@@ -22,19 +22,19 @@ SkillNavigator AI is a cloud-native, web-based placement readiness platform that
 - **Cloud:** AWS (EC2, RDS, S3, VPC, CloudWatch, IAM)
 
 ### ☁️ AWS Services Used
-Service =>Purpose 
 
-EC2 | Hosts the Spring Boot application 
-RDS | MySQL database for users, skills, companies 
-S3 | Resume file storage 
-VPC | Secure networking 
-CloudWatch | Monitoring and custom metrics 
-IAM | Secure access control 
+| Service | Purpose |
+|---------|---------|
+| **EC2** | Hosts the Spring Boot application |
+| **RDS** | MySQL database for users, skills, companies |
+| **S3** | Resume file storage |
+| **VPC** | Secure networking |
+| **CloudWatch** | Monitoring and custom metrics |
+| **IAM** | Secure access control |
 
 ### 🔗 Live Demo
 **[http://3.110.207.54:8080](http://3.110.207.54:8080)**
 
-### 📁 Project Structure
 ### 📁 Project Structure
 SkillNavigator/
 ├── src/main/java/com/skillnavigator/
