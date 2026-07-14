@@ -35,3 +35,34 @@ IAM | Secure access control
 **[http://3.110.207.54:8080](http://3.110.207.54:8080)**
 
 ### 📁 Project Structure
+### 📁 Project Structure
+SkillNavigator/
+├── src/main/java/com/skillnavigator/
+│ ├── controller/ # REST API Controllers
+│ ├── service/ # Business Logic
+│ ├── repository/ # JPA Repositories
+│ ├── entity/ # Database Entities
+│ └── dto/ # Data Transfer Objects
+├── src/main/resources/
+│ ├── static/ # HTML, CSS, JS files
+│ └── application.properties
+└── pom.xml # Maven Dependencies
+
+text
+
+### 👥 Team Members
+- **Devarapalli Rohini Reddy** – Team Lead
+- **Darsi Meghana Sri**
+- **Appidi Sushmitha**
+- **Singamsetti Lavanya**
+- **Yekula Siva Priya**
+
+### 📄 Documentation
+[SkillNavigator-Documentation.pdf](SkillNavigator-Documentation.pdf)
+
+### 📧 Contact
+- **Email:** rohinireddy.devarapalli@gmail.com
+
+---
+
+**© 2026 SkillNavigator AI – All Rights Reserved**
